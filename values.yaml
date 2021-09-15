@@ -1,0 +1,27 @@
+base:
+  name: first-page
+  namespace: pastike-com
+  env: local
+
+replicaCount: 2
+
+image:
+  public: true
+  repository: pastikecom/first-page
+  tag: latest
+
+service:
+  # type: ClusterIP
+  type: NodePort
+  port: 80
+  # targetPort: 80
+  nodePort: 30000
+
+ingress:
+  enabled: false
+  # hostname: localhost
+  # hosts:
+  #   - host: first-page-pastike-com.local.localhost
+  #     paths:
+  #       - path: "/"
+  #         pathType: Prefix
