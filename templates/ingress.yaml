@@ -1,0 +1,53 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.base.name }}
+  namespace: {{ .Values.base.namespace }}
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    {{- if eq .Values.ingress.tls "letsencrypt" }}
+    cert-manager.io/cluster-issuer: "letsencrypt"
+    {{- end }}
+spec:
+  {{- if .Values.ingress.tls }}
+  tls:
+    - hosts:
+      {{- if .Values.ingress.hosts }}
+      {{- range .Values.ingress.hosts }}
+      - {{ .host | quote }}
+      {{- end }}
+      {{- else }}
+      - {{ .Values.base.name }}-{{ .Values.base.namespace }}.{{ .Values.base.env }}.{{ .Values.ingress.hostname | default "localhost" }}
+      {{- end }}
+      secretName: {{ .Values.ingress.tls | default "letsencrypt" }}
+  {{- end }}
+  rules:
+    {{- if .Values.ingress.hosts }}
+    {{- range .Values.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ $.Values.base.name }}
+                port:
+                  number: {{ $.Values.service.port }}
+          {{- end }}
+    {{- end }}
+    {{- else }}
+    - host: {{ .Values.base.name }}-{{ .Values.base.namespace }}.{{ .Values.base.env }}.{{ .Values.ingress.hostname | default "localhost" }}
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.base.name }}
+                port:
+                  number: {{ .Values.service.port }}
+    {{- end }}
+{{- end }}

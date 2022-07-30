@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.base.name }}
+  namespace: {{ .Values.base.namespace }}
+  labels:
+    app: {{ .Values.base.name }}-{{ .Values.base.namespace }}
+    env: {{ .Values.base.env }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.base.name }}-{{ .Values.base.namespace }}
+      env: {{ .Values.base.env }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.base.name }}-{{ .Values.base.namespace }}
+        env: {{ .Values.base.env }}
+    spec:
+      containers:
+        - name: {{ .Values.base.name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- if not .Values.image.public }}
+      imagePullSecrets:
+        - name: regcred
+      {{- end }}
